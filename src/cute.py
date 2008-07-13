@@ -1,6 +1,6 @@
 
 from __future__ import with_statement
-from os import mkdir
+from os import mkdir, listdir
 from os.path import exists, join as pjoin
 from re import compile, sub
 from sys import stderr
@@ -23,6 +23,16 @@ def read_single_line(path, default=None):
         else:
             raise sys.exc_info()
 
+def read_file(path, default=None):
+    try:
+        with open(path) as source:
+            return sjoin(source.readlines(), '')
+    except:
+        if default is not None:
+            return default
+        else:
+            raise sys.exc_info()
+
 def write_single_line(text, path):
     with open(path, 'w') as destn:
         destn.write(text)
@@ -36,18 +46,15 @@ def read_all(path):
         count = count + 1
     return sjoin(text, '')
 
-def indent(line):
-    for i in range(len(line)):
-        if line[i] != ' ':
-            return i
-    return 0
+def is_indent(line):
+    return not line or line[0] == ' '
 
 def by_indent(lines):
     block = []
     blocks = [block]
-    old_indent = indent(lines[0])
+    old_indent = is_indent(lines[0])
     for line in lines:
-        new_indent = indent(line)
+        new_indent = is_indent(line)
         if new_indent == old_indent:
             block.append(line)
         else:
@@ -70,49 +77,118 @@ def by_blank_lines(lines):
             prev_line_blank = False
     return blocks
 
+def join_indents(old_blocks):
+    new_blocks=[]
+    for block in old_blocks:
+        if not new_blocks:
+            new_blocks.append(block)
+        else:
+            if is_indent(block[0]) and is_indent(new_blocks[-1][0]):
+                new_blocks[-1].extend(block)
+            else:
+                new_blocks.append(block)
+    return new_blocks
+
 def add_tag(lines):
-    if indent(lines[0]) > 0:
+    if is_indent(lines[0]):
         tag = "pre"
     else:
         tag = "p"
     return "<%s>%s</%s>" % (tag, sjoin(lines, '\n'), tag)
 
-def format(text):
-    blocks = []
-    for block in by_blank_lines(text.splitlines()):
-        blocks.extend(by_indent(block))
-    return sjoin([add_tag(block) for block in blocks], "\n")
+def unpack(payload):
+    if isinstance(payload, basestring):
+        return payload
+    else:
+        raise Multipart('multipart message')
 
-def build_map(email):
+def un_html(text):
+    text = sub('<', '&lt;', text)
+    text = sub('>', '&gt;', text)
+    return text
+
+def format(text):
+    text = un_html(text).strip()
+    return '<pre>' + text + '</pre>'
+    # no longer try to format text
+#    blocks1 = []
+#    for block in by_blank_lines(text.splitlines()):
+#        blocks1.extend(by_indent(block))
+#    blocks2 = []
+#    for block in join_indents(blocks1):
+#        blocks2.append([un_html(line) for line in block])
+#    return sjoin([add_tag(block) for block in blocks2], "\n")
+
+def build_map(email, exists=False):
     map = {}
     map[TPL_SUBJECT] = email[HDR_SUBJECT]
     map[TPL_FROM] = email[HDR_FROM]
     map[TPL_DATE] = email[HDR_DATE]
-    map[TPL_CONTENT] = format(email.get_payload())
+    map[TPL_CONTENT] = format(unpack(email.get_payload()))
     map[TPL_PREV_ID] = read_single_line(PREV_FILE, '')
     if map[TPL_PREV_ID]:
         map[TPL_PREV_URL] = map[TPL_PREV_ID] + HTML
         map[TPL_PREVIOUS] = '<a href="%s">%s</a>' % (map[TPL_PREV_URL], PREVIOUS)
-    map[TPL_ID] = generate_id(map)
-    map[TPL_URL] = map[TPL_ID] + HTML
-    map[TPL_PERMALINK] = '<a href="%s">%s</a>' % (map[TPL_URL], PERMALINK)
+    generate_id(map, email, exists)
+    generate_url(map, exists)
+    map[TPL_PERMALINK] = "<a href='%s'>%s</a>" % (map[TPL_URL], PERMALINK)
     map[TPL_FILENAME] = pjoin(BLOG_DIR, map[TPL_ID] + HTML)
-    map[TPL_REPLYTO] = '<a href=\"mailto:compute-%(id)s delete-this curly-at acooke dot org\">Comment on this post</a>' % map
+    map[TPL_REPLYTO] = "<a href='mailto:compute-%(id)s delete-this curly-at acooke dot org'>Comment on this post</a>" % map
+    if map[TPL_SUBJECT] and map[TPL_SUBJECT].startswith(OLD_TAG):
+         map[TPL_SUBJECT] =  map[TPL_SUBJECT][len(OLD_TAG):]
     return map
 
-def generate_id(map):
+def generate_url(map, exists):
+    map[TPL_URL] = map[TPL_ID] + HTML
+    if exists:
+        map[TPL_ANCHOR] = sub('\W', '', map[TPL_DATE])
+        map[TPL_ANCHORLINK] = "<a id='%s'/>" % map[TPL_ANCHOR]
+        map[TPL_URL] = map[TPL_URL] + '#' + map[TPL_ANCHOR]
+
+def generate_id(map, email, exists):
+    if exists:
+        map[TPL_ID] = generate_old_id(map, email)
+    else:
+        map[TPL_ID] = generate_new_id(map)
+
+def address_from(header):
+    match = ADDRESS.match(header)
+    if match:
+        return match.group(1)
+    else:
+        return None
+
+def generate_old_id(map, email):
+    to = address_from(email[HDR_TO])
+    if not to: to = address_from(email[HDR_ENV])
+    if not to: to = address_from(email[HDR_CC])
+    if not to:
+        raise IOError('no suitable destination address')
+    destn = join(BLOG_DIR, to + HTML)
+    if exists(destn):
+        return to
+    for file in listdir(BLOG_DIR):
+        if file.endswith(HTML):
+            file = file[0:-5]
+            if to.lower() == file.lower():
+                return file
+    raise BadSubject('no match for ' + to)
+
+def generate_new_id(map):
     subject = map[TPL_SUBJECT]
-    if subject.startswith(OLD_TAG):
-        subject = subject[len(OLD_TAG):]
-    not_alphas = compile(r'[^a-z0-9A-Z]')
-    subject = not_alphas.sub('', subject)
-    if (len(subject) > 10):
-        subject = subject[0:10]
-    subject = subject.upper()
-    count = 0
-    while exists(pjoin(BLOG_DIR, subject + str(count) + HTML)):
-        count = count + 1
-    return subject + str(count)
+    if subject:
+        if subject.startswith(OLD_TAG):
+            subject = subject[len(OLD_TAG):]
+        not_alphas = compile(r'[^a-z0-9A-Z]')
+        subject = not_alphas.sub('', subject)
+        if (len(subject) > 10):
+            subject = subject[0:10]
+        count = 0
+        while exists(pjoin(BLOG_DIR, subject + str(count) + HTML)):
+            count = count + 1
+        return subject + str(count)
+    else:
+        return ''
 
 def skip(map):
     subject = map[TPL_SUBJECT]
@@ -132,20 +208,22 @@ def fixup(line):
     return line
 
 def do_template(map, in_filename, out_filename, fix=True):
-    text = ""
+    first = True
     with open(in_filename) as source:
         for line in source.readlines():
-            match = MARKER.search(line)
-            if match:
-                name = match.group(1).lower()
-                if name in map:
-                    line = map[name] + "\n"
-                else:
-                    print 'no value for', name
-            if fix:
-                text = text + fixup(line)
+            if first:
+                first = False
+                text = line
             else:
-                text = text + line
+                match = MARKER.search(line)
+                if match:
+                    name = match.group(1).lower()
+                    if name in map:
+                        line = map[name] + "\n"
+                if fix:
+                    text = text + fixup(line)
+                else:
+                    text = text + line
     with open(out_filename, 'w') as destn:
         destn.write(text)
 
@@ -153,9 +231,23 @@ def shuffle_stored(path, count):
     for n in range(count, 0, -1):
         source = path + str(n-1)
         destn = path + str(n)
-        if exists(source):
-            # todo - a real copy here
-            do_template({}, source, destn, fix=False)
+        copy(source, destn, force=True)
+
+def copy(spath, dpath, force=False):
+    if exists(spath):
+        if force or not exists(dpath):
+            with open(spath) as source:
+                contents = source.readlines()
+            with open(dpath, 'w') as destn:
+                destn.writelines(contents)
+
+def update_sidebar(map):
+    shuffle_stored(ALL_FILE, N_ALL)
+    write_single_line("<p><a href='%s'>%s</a></p>\n" % 
+                      (map[TPL_URL], map[TPL_SUBJECT]), 
+                      ALL_FILE + str(0))
+    do_template({TPL_ALL: read_all(ALL_FILE)},
+                SIDEBAR, SIDEBAR_FILE, fix=False)
 
 def add_new_entry(email):
     create_blog_dir()
@@ -163,15 +255,22 @@ def add_new_entry(email):
     if not skip(map):
         # generate post (ie the permalink page)
         do_template(map, DATA, map[TPL_FILENAME])
+        stderr.write('writing %s\n' %  map[TPL_FILENAME])
         if map[TPL_PREV_ID]:
             # update the "next" link in the previous entry
             next = "<a href='%s'>%s</a>" % (map[TPL_ID] + HTML, NEXT)
             prev = pjoin(BLOG_DIR, map[TPL_PREV_ID] + HTML)
-            do_template({TPL_NEXT: next}, prev, prev)
+            do_template({TPL_NEXT: next}, prev, prev, fix=False)
         # save current file name so we can update next there next time
         write_single_line(map[TPL_ID], PREV_FILE)
         # generate main page
         do_template(map, INDEX, INDEX_FILE)
+        # update contents
+        copy(CONTENTS, CONTENTS_FILE)
+        do_template({TPL_CONTENT: 
+                     "<!-- CONTENT -->\n<li><a href='%s'>%s</a></li>" %
+                     (map[TPL_URL], map[TPL_SUBJECT])},
+                    CONTENTS_FILE, CONTENTS_FILE, fix=False)
         # add previous entries, without reprocessing
         update = {}
         update[TPL_RECENT] = read_all(RECENT_FILE)
@@ -187,5 +286,28 @@ def add_new_entry(email):
         write_single_line("<p><a href='%s'>%s</a></p>\n" % 
                           (map[TPL_URL], map[TPL_SUBJECT]), 
                           THREADS_FILE + str(0))
+        # update sidebar
+        update_sidebar(map)
+        # copy files on first article
+        copy(CSS, CSS_FILE)
+        copy(IMAGE, IMAGE_FILE)
+        
+def add_reply(email):
+    map = build_map(email, exists=True)
+    if not skip(map):
+        do_template(map, REPLY, REPLY_FILE)
+        reply = {TPL_REPLY: read_file(REPLY_FILE)}
+        do_template(reply, INDEX_FILE, INDEX_FILE, fix=False)
+        post = join(BLOG_DIR, map[TPL_ID] + HTML)
+        do_template(reply, post, post, fix=False)
+        shuffle_stored(REPLIES_FILE, N_REPLIES)
+        write_single_line("<p><a href='%s'>%s</a></p>\n" % 
+                          (map[TPL_URL], map[TPL_SUBJECT]), 
+                          REPLIES_FILE + str(0))
+        update_sidebar(map)
 
+class Multipart(IOError):
+    pass
 
+class BadSubject(IOError):
+    pass

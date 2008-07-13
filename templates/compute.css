@@ -1,0 +1,119 @@
+
+body {
+  margin-top: 8ex;
+  margin-bottom: 4ex;
+  margin-left: 11%;
+  margin-right: 11%;
+  max-width: 1000px;
+  background: #fff;
+  padding: 0;
+  font: normal 0.8em/1.2em verdana,aria,sans-serif;
+  color: #666;
+}
+
+tr, td, th, p, ul, ol, dl, dt {
+  font-size: 90%;
+}
+
+pre, p.header {
+  font-family: 'schumacher clean',courier,monospace;
+  font-size: 110%;
+}
+
+p.header {
+  margin-top: 0ex;
+  margin-bottom: 0ex;
+  font-weight: bold;
+}
+
+a:link {
+  text-decoration: none;
+  font-weight: bold;
+  color: #628000;
+}
+
+a:visited {
+  text-decoration: none;
+  color: #628000;
+}
+
+a:active {
+  text-decoration: none;
+  font-weight: bold;
+  color: #ff0000;
+}
+ 
+img {
+  border: none;
+  vertical-align: middle;
+}
+
+h1 {
+  font-size: 180%;
+  line-height: 110%;
+  color: #333;
+  margin-top: 1ex;
+  margin-left: 35%;
+  margin-bottom: 3ex;
+  text-align: left;
+}
+
+h2 {
+  font-size: 150%;	
+  line-height: 110%;
+  font-weight: bold;
+  color: #404040;
+  margin-top: 4ex;
+  margin-bottom: 1ex;
+}
+
+h3 {
+  font-size: 120%;
+  line-height: 110%;
+  font-weight: bold;
+  color: #404040;
+  margin-top: 4ex;
+  margin-bottom: 1ex;
+}
+
+div.content {
+  float: right;
+  width: 65%;
+  padding-bottom: 2ex;
+}
+
+div.about {
+  padding-bottom: 2ex;
+  text-align: justify;
+}
+
+div.about p {
+  font-size: 80%;
+  line-height: 110%;
+}
+
+div.sidebar {
+  float: left;
+  width: 30%;
+  padding-right: 1em;
+  text-align: right;
+}
+
+div.threads, div.replies, div.regular {
+  padding-bottom: 1.5ex;
+}
+
+div.footer {
+}
+
+div.title, div.footbar {
+  clear: both;
+  position: relative;
+  padding: 1ex;
+  margin-top: 3ex;
+  margin-bottom: 3ex;
+  background-image: url(pancito.png);
+  background-position: center;
+  background-repeat: repeat;
+}
+
