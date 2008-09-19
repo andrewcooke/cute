@@ -3,12 +3,13 @@ from os.path import join
 from re import compile
 
 CUTE_DIR = "/home/andrew/projects/personal/src/python/cute"
-BLOG_DIR = "/home/andrew/projects/personal/www/blog"
-BASE_URL = "http://www.acooke.org/blog/"
+BLOG_DIR = "/home/andrew/projects/personal/www/cute"
+BASE_URL = "http://www.acooke.org/cute/"
 N_RECENT = 10
 N_REPLIES = 20
 N_THREADS = 20
 N_ALL = 1000
+N_RSS = 10
 
 TYPE_ARTICLE = 'article'
 TYPE_REPLY = 'reply'
@@ -33,11 +34,13 @@ CSS_FILE = join(BLOG_DIR, 'compute.css')
 IMAGE_FILE = join(BLOG_DIR, 'pancito.png')
 CONTENTS_FILE = join(BLOG_DIR, 'contents.html')
 REPLY_FILE = join(BLOG_DIR, 'reply')
+FEED_FILE = join(BLOG_DIR, 'rss2.xml')
 # all these take an index
-THREADS_FILE = join(BLOG_DIR, 'threads')
-REPLIES_FILE = join(BLOG_DIR, 'replies')
-RECENT_FILE = join(BLOG_DIR, 'recent')
-ALL_FILE = join(BLOG_DIR, 'all')
+THREADS_FILE = join(BLOG_DIR, 'threads')  # links to recent articles
+REPLIES_FILE = join(BLOG_DIR, 'replies')  # links to recent replies
+RECENT_FILE = join(BLOG_DIR, 'recent')    # recent texts
+ALL_FILE = join(BLOG_DIR, 'all')          # links to recent articles and replies
+RSS_FILE = join(BLOG_DIR, 'rss')          # info for rss summary
 
 HDR_SUBJECT = 'Subject'
 HDR_FROM = 'From'
@@ -47,6 +50,7 @@ HDR_ENV = 'Envelope-to'
 HDR_CC = 'Cc'
 
 TPL_SUBJECT = 'title'
+TPL_RAW_CONTENT = 'raw-content'
 TPL_CONTENT = 'content'
 TPL_PREVIOUS = 'previous'
 TPL_PREV_ID = 'previous-id'
@@ -74,12 +78,29 @@ NEXT = 'Next'
 PERMALINK = 'Permalink'
 BAD_SUBJECTS = [compile(text) for text in [
     'confirm [a-f0-9]{10}', '^ *$', 'Bounce action', '^[Jj]oin$']]
-BAD_FROM = compile(">From")
+BAD_FROM = compile("(>|&gt;)From")
 GOOD_FROM = 'From'
-BAD_CUTE = compile("http://www.acooke.org/andrew/cute")
-GOOD_CUTE = 'http://www.acooke.org/blog'
-LINK = compile("(http://[^ \n\t\r\(\)<>\"']*)")
+LINK = compile("(https?://[^ \n\t\r\(\)<>\"']*)")
 EMAIL = compile("<?(\w+)@[\w\.]+>?")
 MARKER = compile(r'^\s*<!--\s+([\w\-]+)\s+-->\s*$')
 ADDRESS = compile(r'compute-(\w+)@acooke.org')
 TIME = compile(r'^([^+\-]*)([+\-]\d\d\d\d)?(.*)$')
+MAX_DESCR = 400
+
+URL_REWRITES = dict([
+('http://www.acooke.org/andrew/compute.html', 'http://www.acooke.org/cute'),
+('http://www.acooke.org/andrew', 'http://www.acooke.org'),
+('http://www.acooke.org/andrew/papers/index.html#esoa', 'http://www.acooke.org/esoa.pdf'),
+('http://www.acooke.org/andrew/papers/index.html#impl', 'http://www.acooke.org/esoa.pdf'),
+('http://www.acooke.org/andrew/papers/tiny.pdf', 'http://www.acooke.org/tiny.pdf'),
+('http://www.acooke.org/andrew/papers/index.html#schema', 'http://www.acooke.org/schema.pdf'),
+('http://www.acooke.org/andrew/papers/index.html', 'http://www.acooke.org'),
+('http://www.acooke.org/andrew/papers/booklet.pdf', 'http://www.acooke.org/booklet.pdf'),
+('http://www.acooke.org/andrew/papers/lazy.pdf', 'http://www.acooke.org/lazy.pdf'),
+('http://www.acooke.org/andrew/papers/vocab.pdf', 'http://www.acooke.org/vocab.pdf'),
+('http://www.acooke.org/andrew/papers/impl.pdf', 'http://www.acooke.org/impl.pdf'),
+('http://www.acooke.org/andrew/papers/esoa.pdf', 'http://www.acooke.org/esoa.pdf'),
+('http://www.acooke.org/andrew/writing/compgeneral.html#agile', 'http://www.acooke.org/agile-review.html'),
+('http://www.acooke.org/andrew/index.html', 'http://www.acooke.org'),
+('http://www.acooke.org/andrew/writing/arms.html', 'http://www.acooke.org/arms.html')
+])

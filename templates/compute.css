@@ -96,6 +96,7 @@ div.sidebar {
   float: left;
   width: 30%;
   padding-right: 1em;
+  padding-bottom: 1em;
   text-align: right;
 }
 
@@ -115,5 +116,13 @@ div.title, div.footbar {
   background-image: url(pancito.png);
   background-position: center;
   background-repeat: repeat;
+}
+
+iframe {
+  border: 0px;
+  padding: 1px;
+  overflow-x: hidden;
+  margin: 0px;
+  height: 300px;
 }
 

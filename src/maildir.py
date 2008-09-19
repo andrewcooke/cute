@@ -7,29 +7,10 @@ from sys import stderr
 from os import listdir
 from os.path import isfile, getctime
 from re import compile
-from time import strptime
 
-from cute import add_new_entry, add_reply, Multipart, BadSubject
+from cute import add_new_entry, add_reply, Multipart, BadSubject, get_time
 from constants import *
 
-
-def get_time(path):
-    with open(path) as source:
-        email = message_from_file(source)
-        date = email[HDR_DATE]
-        match = TIME.match(date)
-        if not match:
-            raise IOError(date)
-        print date
-        date = match.group(1) + match.group(3)
-        date = date.strip()
-        try:
-            if match.group(3):
-                return strptime(date, '%a, %d %b %Y %H:%M:%S  (%Z)')
-            else:
-                return strptime(date, '%a, %d %b %Y %H:%M:%S')
-        except:
-            return strptime(match.group(1).strip(), '%a, %d %b %Y %H:%M:%S')
 
 def compare_age((typea, timea, patha), (typeb, timeb, pathb)):
     return cmp(timea, timeb)

@@ -5,9 +5,33 @@ from os.path import exists, join as pjoin
 from re import compile, sub
 from sys import stderr
 from string import join as sjoin
+from PyRSS2Gen import RSSItem, Guid, RSS2
+from time import strptime
+from datetime import datetime
+from email import message_from_file
 
 from constants import *
 
+
+def get_time(path):
+    with open(path) as source:
+        email = message_from_file(source)
+        return time_from_date(email[HDR_DATE])
+
+def time_from_date(date):
+    match = TIME.match(date)
+    if not match:
+        raise IOError(date)
+    print date
+    date = match.group(1) + match.group(3)
+    date = date.strip()
+    try:
+        if match.group(3):
+            return strptime(date, '%a, %d %b %Y %H:%M:%S  (%Z)')
+        else:
+            return strptime(date, '%a, %d %b %Y %H:%M:%S')
+    except:
+        return strptime(match.group(1).strip(), '%a, %d %b %Y %H:%M:%S')
 
 def create_blog_dir():
     if not exists(BLOG_DIR):
@@ -37,14 +61,46 @@ def write_single_line(text, path):
     with open(path, 'w') as destn:
         destn.write(text)
 
-def read_all(path):
+def write_rss(map):
+    with open(RSS_FILE + str(0), 'w') as destn:
+        # first line is title
+        destn.write(sub('[\n\r]', ' ', map[TPL_SUBJECT]) + '\n')
+        # second line is url
+        destn.write(map[TPL_URL] + '\n')
+        # third line is date
+        destn.write(repr(time_from_date(map[TPL_DATE])) + '\n')
+        # rest is description
+        content = map[TPL_RAW_CONTENT]
+        if len(content) > MAX_DESCR:
+            content = content[0:MAX_DESCR] + '...'
+        destn.write(content)
+
+def read_rss():
+    rss = []
+    count = 0
+    while exists(RSS_FILE + str(count)):
+        with open(RSS_FILE + str(count)) as source:
+            title = source.readline()
+            url = source.readline()
+            date = eval(source.readline())
+            description = sjoin(source.readlines())
+            rss.append(RSSItem(
+                title=title,
+                link=BASE_URL + url,
+                description=description,
+                guid=Guid(url),
+                pubDate=datetime(*date[0:5])))
+        count = count + 1
+    return rss
+
+def read_all(path, join=''):
     text = []
     count = 0
     while exists(path + str(count)):
         with open(path + str(count)) as source:
             text.extend(source.readlines())
         count = count + 1
-    return sjoin(text, '')
+    return sjoin(text, join)
 
 def is_indent(line):
     return not line or line[0] == ' '
@@ -102,15 +158,22 @@ def unpack(payload):
     else:
         raise Multipart('multipart message')
 
-def un_html(text):
-    text = sub('<', '&lt;', text)
-    text = sub('>', '&gt;', text)
-    return text
+def linkify(match):
+    url = match.group(1)
+    if url in URL_REWRITES: url = URL_REWRITES[url]
+    return "<a href='%s'>%s</a>" % (url, url)
 
-def format(text):
-    text = un_html(text).strip()
-    return '<pre>' + text + '</pre>'
-    # no longer try to format text
+def format(line):
+    if line:
+        line = line.strip()
+        line = sub('<', '&lt;', line)
+        line = sub('>', '&gt;', line)
+        line = sub(BAD_FROM, GOOD_FROM, line)
+        line = sub(LINK, linkify, line)
+        line = sub(EMAIL, lambda match: match.group(1) + "@...", line)
+    return line
+
+#def format(text):
 #    blocks1 = []
 #    for block in by_blank_lines(text.splitlines()):
 #        blocks1.extend(by_indent(block))
@@ -121,10 +184,11 @@ def format(text):
 
 def build_map(email, exists=False):
     map = {}
-    map[TPL_SUBJECT] = email[HDR_SUBJECT]
-    map[TPL_FROM] = email[HDR_FROM]
+    map[TPL_SUBJECT] = format(email[HDR_SUBJECT])
+    map[TPL_FROM] = format(email[HDR_FROM])
     map[TPL_DATE] = email[HDR_DATE]
-    map[TPL_CONTENT] = format(unpack(email.get_payload()))
+    map[TPL_RAW_CONTENT] = unpack(email.get_payload())
+    map[TPL_CONTENT] = '<pre>' + format(map[TPL_RAW_CONTENT]) + '</pre>'
     map[TPL_PREV_ID] = read_single_line(PREV_FILE, '')
     if map[TPL_PREV_ID]:
         map[TPL_PREV_URL] = map[TPL_PREV_ID] + HTML
@@ -197,42 +261,32 @@ def skip(map):
         if regexp.search(subject): return True
     return False
 
-def linkify(match):
-    return "<a href='%s'>%s</a>" % (match.group(1), match.group(1))
-
-def fixup(line):
-    line = sub(BAD_FROM, GOOD_FROM, line)
-    line = sub(BAD_CUTE, GOOD_CUTE, line)
-    line = sub(LINK, linkify, line)
-    line = sub(EMAIL, lambda match: match.group(1) + "@...", line)
-    return line
-
-def do_template(map, in_filename, out_filename, fix=True):
-    first = True
+def do_template(map, in_filename, out_filename):
+    text = ''
     with open(in_filename) as source:
         for line in source.readlines():
-            if first:
-                first = False
-                text = line
-            else:
-                match = MARKER.search(line)
-                if match:
-                    name = match.group(1).lower()
-                    if name in map:
-                        line = map[name] + "\n"
-                if fix:
-                    text = text + fixup(line)
-                else:
-                    text = text + line
+            match = MARKER.search(line)
+            if match:
+                name = match.group(1).lower()
+                if name in map:
+                    line = map[name] + "\n"
+            text = text + line
     with open(out_filename, 'w') as destn:
         destn.write(text)
 
-def shuffle_stored(path, count):
-    for n in range(count, 0, -1):
-        source = path + str(n-1)
-        destn = path + str(n)
-        copy(source, destn, force=True)
-
+def shuffle_stored(path, count, down=True):
+    if down:
+        for n in range(count, 0, -1):
+            source = path + str(n-1)
+            destn = path + str(n)
+            copy(source, destn, force=True)
+    else:
+        for n in range(count):
+            source = path + str(n+1)
+            destn = path + str(n)
+            copy(source, destn, force=True)
+        
+        
 def copy(spath, dpath, force=False):
     if exists(spath):
         if force or not exists(dpath):
@@ -243,11 +297,21 @@ def copy(spath, dpath, force=False):
 
 def update_sidebar(map):
     shuffle_stored(ALL_FILE, N_ALL)
-    write_single_line("<p><a href='%s'>%s</a></p>\n" % 
-                      (map[TPL_URL], map[TPL_SUBJECT]), 
+    write_single_line("<a href='%s' target='_top'>%s</a>" % 
+                      (map[TPL_URL], map[TPL_SUBJECT].lower()), 
                       ALL_FILE + str(0))
-    do_template({TPL_ALL: read_all(ALL_FILE)},
-                SIDEBAR, SIDEBAR_FILE, fix=False)
+    do_template({TPL_ALL: read_all(ALL_FILE, join=';\n')},
+                SIDEBAR, SIDEBAR_FILE)
+
+def update_rss(items):
+    rss = RSS2(
+        title="C[omp]ute",
+        link=BASE_URL,
+        description="Andrew Cooke's blog",
+        lastBuildDate=datetime.now(),
+        items=items)
+    with open(FEED_FILE, 'w') as destn:
+        rss.write_xml(destn)
 
 def add_new_entry(email):
     create_blog_dir()
@@ -260,7 +324,7 @@ def add_new_entry(email):
             # update the "next" link in the previous entry
             next = "<a href='%s'>%s</a>" % (map[TPL_ID] + HTML, NEXT)
             prev = pjoin(BLOG_DIR, map[TPL_PREV_ID] + HTML)
-            do_template({TPL_NEXT: next}, prev, prev, fix=False)
+            do_template({TPL_NEXT: next}, prev, prev)
         # save current file name so we can update next there next time
         write_single_line(map[TPL_ID], PREV_FILE)
         # generate main page
@@ -270,13 +334,13 @@ def add_new_entry(email):
         do_template({TPL_CONTENT: 
                      "<!-- CONTENT -->\n<li><a href='%s'>%s</a></li>" %
                      (map[TPL_URL], map[TPL_SUBJECT])},
-                    CONTENTS_FILE, CONTENTS_FILE, fix=False)
+                    CONTENTS_FILE, CONTENTS_FILE)
         # add previous entries, without reprocessing
         update = {}
         update[TPL_RECENT] = read_all(RECENT_FILE)
         update[TPL_THREADS] = read_all(THREADS_FILE)
         update[TPL_REPLIES] = read_all(REPLIES_FILE)
-        do_template(update, INDEX_FILE, INDEX_FILE, fix=False)
+        do_template(update, INDEX_FILE, INDEX_FILE)
         # shuffle the saved entries
         shuffle_stored(RECENT_FILE, N_RECENT)
         # add a new saved entry to include in the main page
@@ -286,6 +350,15 @@ def add_new_entry(email):
         write_single_line("<p><a href='%s'>%s</a></p>\n" % 
                           (map[TPL_URL], map[TPL_SUBJECT]), 
                           THREADS_FILE + str(0))
+        # same for rss records
+        shuffle_stored(RSS_FILE, N_RSS)
+        write_rss(map)
+        try:
+            update_rss(read_rss())
+        except UnicodeDecodeError, e:
+            stderr.write(e.message)
+            # delete the last rss entry
+            shuffle_stored(RSS_FILE, N_RSS, down=False)
         # update sidebar
         update_sidebar(map)
         # copy files on first article
@@ -297,9 +370,12 @@ def add_reply(email):
     if not skip(map):
         do_template(map, REPLY, REPLY_FILE)
         reply = {TPL_REPLY: read_file(REPLY_FILE)}
-        do_template(reply, INDEX_FILE, INDEX_FILE, fix=False)
+        # restrict front page reply to the main article
+        line = read_single_line(THREADS_FILE + str(0), '')
+        if line.find("'" + map[TPL_ID] + HTML + "'") > -1:
+            do_template(reply, INDEX_FILE, INDEX_FILE)
         post = join(BLOG_DIR, map[TPL_ID] + HTML)
-        do_template(reply, post, post, fix=False)
+        do_template(reply, post, post)
         shuffle_stored(REPLIES_FILE, N_REPLIES)
         write_single_line("<p><a href='%s'>%s</a></p>\n" % 
                           (map[TPL_URL], map[TPL_SUBJECT]), 
