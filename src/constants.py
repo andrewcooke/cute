@@ -101,6 +101,8 @@ URL_REWRITES = dict([
 ('http://www.acooke.org/andrew/papers/impl.pdf', 'http://www.acooke.org/impl.pdf'),
 ('http://www.acooke.org/andrew/papers/esoa.pdf', 'http://www.acooke.org/esoa.pdf'),
 ('http://www.acooke.org/andrew/writing/compgeneral.html#agile', 'http://www.acooke.org/agile-review.html'),
+('http://www.acooke.org/andrew/writing/minimal/static.html', 'http://www.acooke.org/minimal/background.html'),
+('http://www.acooke.org/andrew/writing/minimal/dynamic.html', 'http://www.acooke.org/minimal'),
 ('http://www.acooke.org/andrew/index.html', 'http://www.acooke.org'),
 ('http://www.acooke.org/andrew/writing/arms.html', 'http://www.acooke.org/arms.html')
 ])
