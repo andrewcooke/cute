@@ -68,7 +68,7 @@ def write_rss(map):
         # second line is url
         destn.write(map[TPL_URL] + '\n')
         # third line is date
-        destn.write(repr(time_from_date(map[TPL_DATE])) + '\n')
+        destn.write(str(list(time_from_date(map[TPL_DATE]))) + '\n')
         # rest is description
         content = map[TPL_RAW_CONTENT]
         if len(content) > MAX_DESCR:

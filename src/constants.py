@@ -36,11 +36,11 @@ CONTENTS_FILE = join(BLOG_DIR, 'contents.html')
 REPLY_FILE = join(BLOG_DIR, 'reply')
 FEED_FILE = join(BLOG_DIR, 'rss2.xml')
 # all these take an index
-THREADS_FILE = join(BLOG_DIR, 'threads')  # links to recent articles
-REPLIES_FILE = join(BLOG_DIR, 'replies')  # links to recent replies
-RECENT_FILE = join(BLOG_DIR, 'recent')    # recent texts
-ALL_FILE = join(BLOG_DIR, 'all')          # links to recent articles and replies
-RSS_FILE = join(BLOG_DIR, 'rss')          # info for rss summary
+THREADS_FILE = join(BLOG_DIR, '.threads')  # links to recent articles
+REPLIES_FILE = join(BLOG_DIR, '.replies')  # links to recent replies
+RECENT_FILE = join(BLOG_DIR, '.recent')    # recent texts
+ALL_FILE = join(BLOG_DIR, '.all')          # links to recent articles and replies
+RSS_FILE = join(BLOG_DIR, '.rss')          # info for rss summary
 
 HDR_SUBJECT = 'Subject'
 HDR_FROM = 'From'
@@ -80,7 +80,7 @@ BAD_SUBJECTS = [compile(text) for text in [
     'confirm [a-f0-9]{10}', '^ *$', 'Bounce action', '^[Jj]oin$']]
 BAD_FROM = compile("(>|&gt;)From")
 GOOD_FROM = 'From'
-LINK = compile("(https?://[^ \n\t\r\(\)<>\"']*)")
+LINK = compile("((?:https?|ftp)://[^ \n\t\r\(\)<>\"']*)")
 EMAIL = compile("<?(\w+)@[\w\.]+>?")
 MARKER = compile(r'^\s*<!--\s+([\w\-]+)\s+-->\s*$')
 ADDRESS = compile(r'compute-(\w+)@acooke.org')
