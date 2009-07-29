@@ -35,6 +35,7 @@ IMAGE_FILE = join(BLOG_DIR, 'pancito.png')
 CONTENTS_FILE = join(BLOG_DIR, 'contents.html')
 REPLY_FILE = join(BLOG_DIR, 'reply')
 FEED_FILE = join(BLOG_DIR, 'rss2.xml')
+LOCK_FILE = join(BLOG_DIR, '.lock')
 # all these take an index
 THREADS_FILE = join(BLOG_DIR, '.threads')  # links to recent articles
 REPLIES_FILE = join(BLOG_DIR, '.replies')  # links to recent replies

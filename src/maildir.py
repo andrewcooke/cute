@@ -24,13 +24,13 @@ def collect_files(dir, type_, acc):
 
 def main():
     files = []
-    collect_files('/home/andrew/mail/.play.lists.tech.compute/cur',
+    collect_files('/home/andrew/mail/.compute/cur',
                   TYPE_ARTICLE, files)
-    collect_files('/home/andrew/mail/.play.lists.tech.compute/new',
+    collect_files('/home/andrew/mail/.compute/new',
                   TYPE_ARTICLE, files)
-    collect_files('/home/andrew/mail/.play.lists.tech.compute.reply/cur',
+    collect_files('/home/andrew/mail/.compute.reply/cur',
                   TYPE_REPLY, files)
-    collect_files('/home/andrew/mail/.play.lists.tech.compute.reply/new',
+    collect_files('/home/andrew/mail/.compute.reply/new',
                   TYPE_REPLY, files)
     files.sort(compare_age)
     for (type_, time, path) in files:
