@@ -75,6 +75,14 @@ def write_rss(map):
             content = content[0:MAX_DESCR] + '...'
         destn.write(content)
 
+def write_tweet(map):
+    with open(TWEET_FILE, 'w') as destn:
+        msg = map[TPL_URL]
+        msg = msg + ' ' + map[TPL_SUBJECT]
+        while len(msg) > 140:
+            msg = msg[0:msg.rindex(' ')]
+        destn.write(msg)
+
 def read_rss():
     rss = []
     count = 0
@@ -359,6 +367,8 @@ def add_new_entry(email):
             stderr.write(e.message)
             # delete the last rss entry
             shuffle_stored(RSS_FILE, N_RSS, down=False)
+        # and tweet
+        write_tweet(map)
         # update sidebar
         update_sidebar(map)
         # copy files on first article

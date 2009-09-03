@@ -14,6 +14,7 @@ def main():
     execl('/home/andrew/bin/rssping', 'rpc.technorati.com', '/rpc/ping')
     execl('/home/andrew/bin/rssping', 'rpc.weblogs.com', '/RPC2')
     execl('/home/andrew/bin/rssping', 'blogsearch.google.com', '/ping/RPC2')
+    execl('/home/andrew/bin/tweetCute')
 
 if __name__ == '__main__':
     main()

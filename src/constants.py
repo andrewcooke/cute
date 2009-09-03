@@ -42,6 +42,7 @@ REPLIES_FILE = join(BLOG_DIR, '.replies')  # links to recent replies
 RECENT_FILE = join(BLOG_DIR, '.recent')    # recent texts
 ALL_FILE = join(BLOG_DIR, '.all')          # links to recent articles and replies
 RSS_FILE = join(BLOG_DIR, '.rss')          # info for rss summary
+TWEET_FILE = join(BLOG_DIR, '.tweet')      # 140 chars or less
 
 HDR_SUBJECT = 'Subject'
 HDR_FROM = 'From'
