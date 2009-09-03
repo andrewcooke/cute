@@ -77,10 +77,11 @@ def write_rss(map):
 
 def write_tweet(map):
     with open(TWEET_FILE, 'w') as destn:
-        msg = map[TPL_URL]
+        msg = SHORT_URL + map[TPL_URL]
         msg = msg + ' ' + map[TPL_SUBJECT]
-        while len(msg) > 140:
+        while len(msg) > 138:
             msg = msg[0:msg.rindex(' ')]
+        msg = '"' + msg + '"'
         destn.write(msg)
 
 def read_rss():

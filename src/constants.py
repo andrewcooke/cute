@@ -5,6 +5,7 @@ from re import compile
 CUTE_DIR = "/home/andrew/src/cute"
 BLOG_DIR = "/home/andrew/www/cute"
 BASE_URL = "http://www.acooke.org/cute/"
+SHORT_URL = "http://acooke.org/cute/"
 N_RECENT = 10
 N_REPLIES = 20
 N_THREADS = 20
