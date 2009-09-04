@@ -81,7 +81,6 @@ def write_tweet(map):
         msg = msg + ' ' + map[TPL_SUBJECT]
         while len(msg) > 138:
             msg = msg[0:msg.rindex(' ')]
-        msg = "'" + msg + "'"
         destn.write(msg)
 
 def read_rss():
