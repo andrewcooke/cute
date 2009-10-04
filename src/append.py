@@ -10,11 +10,15 @@ from cute import add_new_entry
 def main():
     email = message_from_file(stdin)
     add_new_entry(email)
-    call(['/home/andrew/bin/updateCute'])
-    call(['/home/andrew/bin/tweetCute'])
-    call(['/home/andrew/bin/rssping', 'rpc.technorati.com', '/rpc/ping'])
-    call(['/home/andrew/bin/rssping', 'rpc.weblogs.com', '/RPC2'])
-    call(['/home/andrew/bin/rssping', 'blogsearch.google.com', '/ping/RPC2'])
+    do_call('/home/andrew/bin/updateCute')
+    do_call('/home/andrew/bin/tweetCute')
+    do_call('/home/andrew/bin/rssping', 'rpc.technorati.com', '/rpc/ping')
+    do_call('/home/andrew/bin/rssping', 'rpc.weblogs.com', '/RPC2')
+    do_call('/home/andrew/bin/rssping', 'blogsearch.google.com', '/ping/RPC2')
+
+def do_call(*args):
+    print args
+    call(args)
 
 if __name__ == '__main__':
     main()

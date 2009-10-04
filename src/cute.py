@@ -64,7 +64,7 @@ def write_single_line(text, path):
 def write_rss(map):
     with open(RSS_FILE + str(0), 'w') as destn:
         # first line is title
-        destn.write(sub('[\n\r]', ' ', map[TPL_SUBJECT]) + '\n')
+        destn.write(map[TPL_SUBJECT] + '\n')
         # second line is url
         destn.write(map[TPL_URL] + '\n')
         # third line is date
@@ -179,6 +179,8 @@ def format(line):
         line = sub(BAD_FROM, GOOD_FROM, line)
         line = sub(LINK, linkify, line)
         line = sub(EMAIL, lambda match: match.group(1) + "@...", line)
+    else:
+        line = ''
     return line
 
 #def format(text):
@@ -192,7 +194,7 @@ def format(line):
 
 def build_map(email, exists=False):
     map = {}
-    map[TPL_SUBJECT] = format(email[HDR_SUBJECT])
+    map[TPL_SUBJECT] = sub('[\n\r]', ' ', format(email[HDR_SUBJECT]))
     map[TPL_FROM] = format(email[HDR_FROM])
     map[TPL_DATE] = email[HDR_DATE]
     map[TPL_RAW_CONTENT] = unpack(email.get_payload())
@@ -205,7 +207,7 @@ def build_map(email, exists=False):
     generate_url(map, exists)
     map[TPL_PERMALINK] = "<a href='%s'>%s</a>" % (map[TPL_URL], PERMALINK)
     map[TPL_FILENAME] = pjoin(BLOG_DIR, map[TPL_ID] + HTML)
-    map[TPL_REPLYTO] = "<a href='mailto:compute-%(id)s delete-this curly-at acooke dot org'>Comment on this post</a>" % map
+    map[TPL_REPLYTO] = "<a href='mailto:compute+%(id)s delete-this curly-at acooke dot org'>Comment on this post</a>" % map
     if map[TPL_SUBJECT] and map[TPL_SUBJECT].startswith(OLD_TAG):
          map[TPL_SUBJECT] =  map[TPL_SUBJECT][len(OLD_TAG):]
     return map
@@ -214,7 +216,7 @@ def generate_url(map, exists):
     map[TPL_URL] = map[TPL_ID] + HTML
     if exists:
         map[TPL_ANCHOR] = sub('\W', '', map[TPL_DATE])
-        map[TPL_ANCHORLINK] = "<a id='%s'/>" % map[TPL_ANCHOR]
+        map[TPL_ANCHORLINK] = "<a id='%s'></a>" % map[TPL_ANCHOR]
         map[TPL_URL] = map[TPL_URL] + '#' + map[TPL_ANCHOR]
 
 def generate_id(map, email, exists):
@@ -305,8 +307,8 @@ def copy(spath, dpath, force=False):
 
 def update_sidebar(map):
     shuffle_stored(ALL_FILE, N_ALL)
-    write_single_line("<a href='%s' target='_top'>%s</a>" % 
-                      (map[TPL_URL], map[TPL_SUBJECT].lower()), 
+    write_single_line("<a href='%s%s' target='_top'>%s</a>" % 
+                      (ABS_PATH, map[TPL_URL], map[TPL_SUBJECT].lower()), 
                       ALL_FILE + str(0))
     do_template({TPL_ALL: read_all(ALL_FILE, join=';\n')},
                 SIDEBAR, SIDEBAR_FILE)
@@ -373,6 +375,7 @@ def add_new_entry(email):
         update_sidebar(map)
         # copy files on first article
         copy(CSS, CSS_FILE)
+        copy(CSS, HTACCESS_FILE)
         copy(IMAGE, IMAGE_FILE)
         
 def add_reply(email):
