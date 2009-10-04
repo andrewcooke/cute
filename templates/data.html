@@ -110,8 +110,14 @@ etc. Based in Santiago, Chile; telecommute worldwide.
 		{position: 'bottom', body: 'bottom', height: 40, scroll: true}
 	    ]
 	});
+        layout.on('render', function() {
+            var anchor = window.location.hash;
+            if (anchor) {
+                if (anchor.substring(0,1) == '#') anchor = anchor.substring(1);
+                Dom.get(anchor).scrollIntoView(true);
+            }
+        });
 	layout.render();
-        Dom.get('form').appendChild(Dom.get('layout-doc'))
     });
 })();
 </script>
