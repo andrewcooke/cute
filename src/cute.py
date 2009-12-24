@@ -101,10 +101,10 @@ def read_rss():
         count = count + 1
     return rss
 
-def read_all(path, join=''):
+def read_all(path, join='', max_count=-1):
     text = []
     count = 0
-    while exists(path + str(count)):
+    while exists(path + str(count) and count != max_count):
         with open(path + str(count)) as source:
             text.extend(source.readlines())
         count = count + 1
@@ -312,6 +312,8 @@ def update_sidebar(map):
                       ALL_FILE + str(0))
     do_template({TPL_ALL: read_all(ALL_FILE, join=';\n')},
                 SIDEBAR, SIDEBAR_FILE)
+    do_template({TPL_ALL: read_all(ALL_FILE, join='</li><li>', max_count=3)},
+                MINIBAR, MINIBAR_FILE)
 
 def update_rss(items):
     rss = RSS2(
