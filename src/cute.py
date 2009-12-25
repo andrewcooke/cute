@@ -104,7 +104,7 @@ def read_rss():
 def read_all(path, join='', max_count=-1):
     text = []
     count = 0
-    while exists(path + str(count) and count != max_count):
+    while exists(path + str(count)) and count != max_count:
         with open(path + str(count)) as source:
             text.extend(source.readlines())
         count = count + 1
@@ -308,11 +308,12 @@ def copy(spath, dpath, force=False):
 def update_sidebar(map):
     shuffle_stored(ALL_FILE, N_ALL)
     write_single_line("<a href='%s%s' target='_top'>%s</a>" % 
-                      (ABS_PATH, map[TPL_URL], map[TPL_SUBJECT].lower()), 
+                      (ABS_PATH, map[TPL_URL], map[TPL_SUBJECT]), 
                       ALL_FILE + str(0))
     do_template({TPL_ALL: read_all(ALL_FILE, join=';\n')},
                 SIDEBAR, SIDEBAR_FILE)
-    do_template({TPL_ALL: read_all(ALL_FILE, join='</li><li>', max_count=3)},
+    do_template({TPL_ALL: read_all(ALL_FILE, join='\n</li><li>\n', 
+                                   max_count=3)},
                 MINIBAR, MINIBAR_FILE)
 
 def update_rss(items):
