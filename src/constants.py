@@ -2,8 +2,8 @@
 from os.path import join
 from re import compile
 
-CUTE_DIR = "/home/andrew/src/cute"
-BLOG_DIR = "/home/andrew/www/cute"
+CUTE_DIR = "/home/andrew/projects/personal/cute"
+BLOG_DIR = "/home/andrew/projects/personal/www/cute"
 BASE_URL = "http://www.acooke.org/cute/"
 SHORT_URL = "http://acooke.org/cute/"
 ABS_PATH = "/cute/"

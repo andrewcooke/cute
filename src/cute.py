@@ -207,7 +207,8 @@ def build_map(email, exists=False):
     generate_url(map, exists)
     map[TPL_PERMALINK] = "<a href='%s'>%s</a>" % (map[TPL_URL], PERMALINK)
     map[TPL_FILENAME] = pjoin(BLOG_DIR, map[TPL_ID] + HTML)
-    map[TPL_REPLYTO] = "<a href='mailto:compute+%(id)s delete-this curly-at acooke dot org'>Comment on this post</a>" % map
+#    map[TPL_REPLYTO] = "<a href='mailto:compute+%(id)s delete-this curly-at acooke dot org'>Comment on this post</a>" % map
+    map[TPL_REPLYTO] = "<a href='mailto:compute+%(id)s@acooke.org'>Comment on this post</a>" % map
     if map[TPL_SUBJECT] and map[TPL_SUBJECT].startswith(OLD_TAG):
          map[TPL_SUBJECT] =  map[TPL_SUBJECT][len(OLD_TAG):]
     return map
@@ -234,8 +235,8 @@ def address_from(header):
 
 def generate_old_id(map, email):
     to = address_from(email[HDR_TO])
-    if not to: to = address_from(email[HDR_ENV])
-    if not to: to = address_from(email[HDR_CC])
+    if not to and email[HDR_ENV]: to = address_from(email[HDR_ENV])
+    if not to and email[HDR_CC]: to = address_from(email[HDR_CC])
     if not to:
         raise IOError('no suitable destination address')
     destn = join(BLOG_DIR, to + HTML)
