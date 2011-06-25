@@ -1,6 +1,6 @@
 
 body {
-  font-family: serif;
+  font-family: georgia;
   font-size: 85%;
   background-color: white;
   color: black;
@@ -11,21 +11,31 @@ div#top, div#left, div#center, div#bottom {
 }
 
 h1 {
-  font-size: 153.9%;
-  margin-top: 20px;
+  font-size: 300%;
+  font-weight: bold;
+  text-align: center;
   margin-bottom: 20px;
 }
 
 h2 {
-  font-size: 153.9%;
-  margin-top: 30px;
+  font-size: 167%;
+  font-weight: bold;
+  margin-top: 20px;
   margin-bottom: 20px;
 }
 
 h3 {
+  font-size: 153.9%;
+  font-weight: bold;
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+
+h4 {
+  font-size: 138.5%;
+  font-weight: bold;
   margin-top: 30px;
   margin-bottom: 10px;
-  font-size: 138.5%;
 }
 
 p {
@@ -33,19 +43,24 @@ p {
 }
 
 div.about p {
-  font-style: italic;
-  font-size: 85%;
   text-align: justify;
+  margin-bottom: 5px;
 }
 
-div.about {
-  padding-bottom: 10px;
+div.about p:first-child {
+  color: #306000;
+}
+
+p.header {
+  font-family: 'schumacher clean', courier, monospace;
+  font-weight: bold;
+  font-size: 108%;
+  padding-top: 1px;
 }
 
 pre {
   font-family: 'schumacher clean', courier, monospace;
   padding-top: 10px;
-/*  font-size: 108%; */
 }
 
 a {
