@@ -227,7 +227,7 @@ def generate_id(map, email, exists):
         map[TPL_ID] = generate_new_id(map)
 
 def address_from(header):
-    match = ADDRESS.match(header)
+    match = ADDRESS.search(header)
     if match:
         return match.group(1)
     else:
@@ -237,6 +237,7 @@ def generate_old_id(map, email):
     to = address_from(email[HDR_TO])
     if not to and email[HDR_ENV]: to = address_from(email[HDR_ENV])
     if not to and email[HDR_CC]: to = address_from(email[HDR_CC])
+    if not to and email[HDR_TO]: to = address_from(email[HDR_TO])
     if not to:
         raise IOError('no suitable destination address')
     destn = join(BLOG_DIR, to + HTML)
