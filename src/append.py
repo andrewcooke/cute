@@ -12,9 +12,9 @@ def main():
     add_new_entry(email)
     do_call('/home/andrew/bin/updateCute')
     do_call('/home/andrew/bin/tweetCute')
-    do_call('/home/andrew/bin/rssping', 'rpc.technorati.com', '/rpc/ping')
-    do_call('/home/andrew/bin/rssping', 'rpc.weblogs.com', '/RPC2')
-    do_call('/home/andrew/bin/rssping', 'blogsearch.google.com', '/ping/RPC2')
+#    do_call('/home/andrew/bin/rssping', 'rpc.technorati.com', '/rpc/ping')
+#    do_call('/home/andrew/bin/rssping', 'rpc.weblogs.com', '/RPC2')
+#    do_call('/home/andrew/bin/rssping', 'blogsearch.google.com', '/ping/RPC2')
 
 def do_call(*args):
     print args
