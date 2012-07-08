@@ -56,6 +56,7 @@ HDR_DATE = 'Date'
 HDR_TO = 'To'
 HDR_ENV = 'Envelope-to'
 HDR_CC = 'Cc'
+HDR_MARKDOWN = 'X-Markdown'
 
 TPL_SUBJECT = 'title'
 TPL_RAW_CONTENT = 'raw-content'

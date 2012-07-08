@@ -5,6 +5,7 @@ from os.path import exists, join as pjoin
 from re import compile, sub
 from sys import stderr
 from string import join as sjoin
+from subprocess import check_output
 from PyRSS2Gen import RSSItem, Guid, RSS2
 from time import strptime
 from datetime import datetime
@@ -160,45 +161,50 @@ def add_tag(lines):
         tag = "p"
     return "<%s>%s</%s>" % (tag, sjoin(lines, '\n'), tag)
 
-def unpack(payload):
-    if isinstance(payload, basestring):
-        return payload
+def unpack(message):
+    payload = message.get_payload()
+    if message.is_multipart():
+        if len(payload) == 1:
+            return unpack(payload[0])
+        else:
+            raise Multipart('multipart message')
     else:
-        raise Multipart('multipart message')
+        return payload
 
 def linkify(match):
     url = match.group(1)
     if url in URL_REWRITES: url = URL_REWRITES[url]
     return "<a href='%s'>%s</a>" % (url, url)
 
-def format(line):
-    if line:
-        line = line.strip()
-        line = sub('<', '&lt;', line)
-        line = sub('>', '&gt;', line)
-        line = sub(BAD_FROM, GOOD_FROM, line)
-        line = sub(LINK, linkify, line)
-        line = sub(EMAIL, lambda match: match.group(1) + "@...", line)
+def format_pre(text):
+    if text:
+        text = text.strip()
+        text = sub('<', '&lt;', text)
+        text = sub('>', '&gt;', text)
+        text = sub(BAD_FROM, GOOD_FROM, text)
+        text = sub(LINK, linkify, text)
+        text = sub(EMAIL, lambda match: match.group(1) + "@...", text)
     else:
-        line = ''
-    return line
+        text = ''
+    return '<pre>' + text + '</pre>'
 
-#def format(text):
-#    blocks1 = []
-#    for block in by_blank_lines(text.splitlines()):
-#        blocks1.extend(by_indent(block))
-#    blocks2 = []
-#    for block in join_indents(blocks1):
-#        blocks2.append([un_html(line) for line in block])
-#    return sjoin([add_tag(block) for block in blocks2], "\n")
+def format_md(text):
+    return check_output('pandoc', '--from=md', '--to=html', '--mathjax', 
+                        stdin=text)
+
+def format(email, text):
+    if HDR_MARKDOWN in email:
+        return format_md(text)
+    else:
+        return format_pre(text)
 
 def build_map(email, exists=False):
     map = {}
     map[TPL_SUBJECT] = sub('[\n\r]', ' ', format(email[HDR_SUBJECT]))
     map[TPL_FROM] = format(email[HDR_FROM])
     map[TPL_DATE] = email[HDR_DATE]
-    map[TPL_RAW_CONTENT] = unpack(email.get_payload())
-    map[TPL_CONTENT] = '<pre>' + format(map[TPL_RAW_CONTENT]) + '</pre>'
+    map[TPL_RAW_CONTENT] = unpack(email)
+    map[TPL_CONTENT] = format(email, map[TPL_RAW_CONTENT])
     map[TPL_PREV_ID] = read_single_line(PREV_FILE, '')
     if map[TPL_PREV_ID]:
         map[TPL_PREV_URL] = map[TPL_PREV_ID] + HTML
