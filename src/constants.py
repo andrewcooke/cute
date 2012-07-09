@@ -14,6 +14,8 @@ N_ALL = 1000
 N_MINI = 3
 N_RSS = 10
 
+PANDOC = "/usr/bin/pandoc"
+
 TYPE_ARTICLE = 'article'
 TYPE_REPLY = 'reply'
 

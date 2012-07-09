@@ -5,7 +5,8 @@ from os.path import exists, join as pjoin
 from re import compile, sub
 from sys import stderr
 from string import join as sjoin
-from subprocess import check_output
+from StringIO import StringIO
+from subprocess import Popen, PIPE
 from PyRSS2Gen import RSSItem, Guid, RSS2
 from time import strptime
 from datetime import datetime
@@ -176,7 +177,7 @@ def linkify(match):
     if url in URL_REWRITES: url = URL_REWRITES[url]
     return "<a href='%s'>%s</a>" % (url, url)
 
-def format_pre(text):
+def format_raw(text):
     if text:
         text = text.strip()
         text = sub('<', '&lt;', text)
@@ -186,11 +187,15 @@ def format_pre(text):
         text = sub(EMAIL, lambda match: match.group(1) + "@...", text)
     else:
         text = ''
-    return '<pre>' + text + '</pre>'
+    return text
+
+def format_pre(text):
+    return '<pre>' + format_raw(text) + '</pre>'
 
 def format_md(text):
-    return check_output('pandoc', '--from=md', '--to=html', '--mathjax', 
-                        stdin=text)
+    p = Popen([PANDOC, '--from=markdown', '--to=html', '--mathjax'], 
+              stdin=PIPE, stdout=PIPE)
+    return p.communicate(text)[0]
 
 def format(email, text):
     if HDR_MARKDOWN in email:
@@ -200,8 +205,8 @@ def format(email, text):
 
 def build_map(email, exists=False):
     map = {}
-    map[TPL_SUBJECT] = sub('[\n\r]', ' ', format(email[HDR_SUBJECT]))
-    map[TPL_FROM] = format(email[HDR_FROM])
+    map[TPL_SUBJECT] = sub('[\n\r]', ' ', format_raw(email[HDR_SUBJECT]))
+    map[TPL_FROM] = format_raw(email[HDR_FROM])
     map[TPL_DATE] = email[HDR_DATE]
     map[TPL_RAW_CONTENT] = unpack(email)
     map[TPL_CONTENT] = format(email, map[TPL_RAW_CONTENT])

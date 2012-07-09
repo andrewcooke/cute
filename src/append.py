@@ -10,8 +10,8 @@ from cute import add_new_entry
 def main():
     email = message_from_file(stdin)
     add_new_entry(email)
-#    do_call('/home/andrew/bin/updateCute')
-#    do_call('/home/andrew/bin/tweetCute')
+    do_call('/home/andrew/bin/updateCute')
+    do_call('/home/andrew/bin/tweetCute')
 
 def do_call(*args):
     print args
