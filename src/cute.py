@@ -20,11 +20,10 @@ def get_time(path):
         email = message_from_file(source)
         return time_from_date(email[HDR_DATE])
 
-def time_from_date(date):
+def _time_from_date(date):
     match = TIME.match(date)
     if not match:
         raise IOError(date)
-    print date
     date = match.group(1) + match.group(3)
     date = date.strip()
     try:
@@ -34,6 +33,14 @@ def time_from_date(date):
             return strptime(date, '%a, %d %b %Y %H:%M:%S')
     except:
         return strptime(match.group(1).strip(), '%a, %d %b %Y %H:%M:%S')
+
+def time_from_date(date):
+    try:
+        from dateutil.parser import parse
+        return parse(date).timetuple()
+    except:
+        stderr.write('dateutil failed for : %s' % date)
+        return _time_from_date(date)
 
 def create_blog_dir():
     if not exists(BLOG_DIR):
@@ -165,10 +172,11 @@ def add_tag(lines):
 def unpack(message):
     payload = message.get_payload()
     if message.is_multipart():
-        if len(payload) == 1:
-            return unpack(payload[0])
-        else:
-            raise Multipart('multipart message')
+        return unpack(payload[0])
+#        if len(payload) == 1:
+#            return unpack(payload[0])
+#        else:
+#            raise Multipart('multipart message')
     else:
         return payload
 
