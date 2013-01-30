@@ -222,6 +222,7 @@ def build_map(email, exists=False):
     if map[TPL_PREV_ID]:
         map[TPL_PREV_URL] = map[TPL_PREV_ID] + HTML
         map[TPL_PREVIOUS] = '<a href="%s">%s</a>' % (map[TPL_PREV_URL], PREVIOUS)
+    map[TPL_SELF_AD] = SELF_AD
     generate_id(map, email, exists)
     generate_url(map, exists)
     map[TPL_PERMALINK] = "<a href='%s'>%s</a>" % (map[TPL_URL], PERMALINK)

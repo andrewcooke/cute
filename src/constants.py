@@ -2,15 +2,15 @@
 from os.path import join
 from re import compile
 
-CUTE_DIR = "/home/andrew/projects/personal/cute"
-BLOG_DIR = "/home/andrew/projects/personal/www/cute"
+CUTE_DIR = "/home/andrew/project/cute"
+BLOG_DIR = "/home/andrew/project/www/cute"
 BASE_URL = "http://www.acooke.org/cute/"
 SHORT_URL = "http://acooke.org/cute/"
 ABS_PATH = "/cute/"
 N_RECENT = 10
 N_REPLIES = 20
 N_THREADS = 20
-N_ALL = 1000
+N_ALL = 100
 N_MINI = 3
 N_RSS = 10
 
@@ -81,6 +81,7 @@ TPL_REPLY = 'reply'
 TPL_ANCHOR = 'anchor'
 TPL_ANCHORLINK = 'anchorlink'
 TPL_ALL = 'all'
+TPL_SELF_AD = 'self-advert'
 
 OLD_TAG = '[Cute]'
 HTML = '.html'
@@ -97,6 +98,19 @@ MARKER = compile(r'^\s*<!--\s+([\w\-]+)\s+-->\s*$')
 ADDRESS = compile(r'compute[+\-](\w+)@acooke.org')
 TIME = compile(r'^([^+\-]*)([+\-]\d\d\d\d)?(.*)$')
 MAX_DESCR = 400
+
+SELF_AD = '''
+<h3>Personal Projects</h3>
+<p><a href="/portfolio/lepl">Lepl</a> parser for Python.</p>
+<p><a href="http://colorlessgreen.net">Colorless Green</a>.</p>
+<p><a href="/photography">Photography</a> around Santiago.</p>
+<p><a href="/portfolio/practicl">SVG</a> experiment.</p>
+<h3>Professional Portfolio</h3>
+<p><a href="/portfolio/seismic-cal">Calibration</a> of seismometers.
+<p><a href="/portfolio/data-access">Data</a> access via web services.
+<p><a href="/portfolio/cache">Cache</a> rewrite.
+<p>Extending <a href="/portfolio/security">OpenSSH</a>.
+'''
 
 URL_REWRITES = dict([
 ('http://www.acooke.org/andrew/compute.html', 'http://www.acooke.org/cute'),
