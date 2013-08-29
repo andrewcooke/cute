@@ -173,10 +173,6 @@ def unpack(message):
     payload = message.get_payload()
     if message.is_multipart():
         return unpack(payload[0])
-#        if len(payload) == 1:
-#            return unpack(payload[0])
-#        else:
-#            raise Multipart('multipart message')
     else:
         return payload
 
@@ -227,7 +223,6 @@ def build_map(email, exists=False):
     generate_url(map, exists)
     map[TPL_PERMALINK] = "<a href='%s'>%s</a>" % (map[TPL_URL], PERMALINK)
     map[TPL_FILENAME] = pjoin(BLOG_DIR, map[TPL_ID] + HTML)
-#    map[TPL_REPLYTO] = "<a href='mailto:compute+%(id)s delete-this curly-at acooke dot org'>Comment on this post</a>" % map
     map[TPL_REPLYTO] = "<a href='mailto:compute+%(id)s@acooke.org'>Comment on this post</a>" % map
     if map[TPL_SUBJECT] and map[TPL_SUBJECT].startswith(OLD_TAG):
          map[TPL_SUBJECT] =  map[TPL_SUBJECT][len(OLD_TAG):]
@@ -368,7 +363,8 @@ def add_new_entry(email):
         copy(CONTENTS, CONTENTS_FILE)
         do_template({TPL_CONTENT: 
                      "<!-- CONTENT -->\n<li><a href='%s'>%s</a></li>" %
-                     (map[TPL_URL], map[TPL_SUBJECT])},
+                     (map[TPL_URL], map[TPL_SUBJECT]),
+                     TPL_SELF_AD: SELF_AD},
                     CONTENTS_FILE, CONTENTS_FILE)
         # add previous entries, without reprocessing
         update = {}
