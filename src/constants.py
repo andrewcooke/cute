@@ -106,10 +106,13 @@ SELF_AD = '''
 <p><a href="/photography">Photography</a> around Santiago.</p>
 <p><a href="/portfolio/practicl">SVG</a> experiment.</p>
 <h3>Professional Portfolio</h3>
-<p><a href="/portfolio/seismic-cal">Calibration</a> of seismometers.
-<p><a href="/portfolio/data-access">Data</a> access via web services.
-<p><a href="/portfolio/cache">Cache</a> rewrite.
-<p>Extending <a href="/portfolio/security">OpenSSH</a>.
+<p><a href="/portfolio/seismic-cal">Calibration</a> of seismometers.</p>
+<p><a href="/portfolio/data-access">Data</a> access via web services.</p>
+<p><a href="/portfolio/cache">Cache</a> rewrite.</p>
+<p>Extending <a href="/portfolio/security">OpenSSH</a>.</p>
+<p><a href="https://bitbucket.org/isti/c-orm/src">C-ORM</a>:
+<a href="https://bitbucket.org/isti/c-orm/wiki/Home">docs</a>, 
+<a href="http://isti.bitbucket.org/clib/index.html">API</a>.</p>
 '''
 
 URL_REWRITES = dict([
