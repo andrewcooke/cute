@@ -396,7 +396,6 @@ def add_new_entry(email):
         update_sidebar(map)
         # copy files on first article
         copy(CSS, CSS_FILE)
-        copy(CSS, HTACCESS_FILE)
         copy(IMAGE, IMAGE_FILE)
         
 def add_reply(email):
