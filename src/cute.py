@@ -59,7 +59,8 @@ def read_single_line(path, default=None):
 def read_file(path, default=None):
     try:
         with open(path) as source:
-            return sjoin(source.readlines(), '')
+            return sjoin(map(lambda s: s.decode('utf-8'), source.readlines()),
+                         '')
     except:
         if default is not None:
             return default
@@ -82,7 +83,7 @@ def write_rss(map):
         content = map[TPL_RAW_CONTENT]
         if len(content) > MAX_DESCR:
             content = content[0:MAX_DESCR] + '...'
-        destn.write(content)
+        destn.write(content.encode('utf-8'))
 
 def write_tweet(map):
     with open(TWEET_FILE, 'w') as destn:
@@ -115,7 +116,7 @@ def read_all(path, join='', max_count=-1):
     count = 0
     while exists(path + str(count)) and count != max_count:
         with open(path + str(count)) as source:
-            text.extend(source.readlines())
+            text.extend(map(lambda s: s.decode('utf-8'), source.readlines()))
         count = count + 1
     return sjoin(text, join)
 
@@ -176,6 +177,13 @@ def unpack(message):
     else:
         return payload
 
+def unpack_charset(email):
+    if email[HDR_CTYPE]:
+        ctype = email[HDR_CTYPE]
+        match = CTYPE.search(ctype)
+        if match: return match.group(1)
+    return 'latin-1'
+
 def linkify(match):
     url = match.group(1)
     if url in URL_REWRITES: url = URL_REWRITES[url]
@@ -212,7 +220,13 @@ def build_map(email, exists=False):
     map[TPL_SUBJECT] = sub('[\n\r]', ' ', format_raw(email[HDR_SUBJECT]))
     map[TPL_FROM] = format_raw(email[HDR_FROM])
     map[TPL_DATE] = email[HDR_DATE]
-    map[TPL_RAW_CONTENT] = unpack(email)
+    raw = unpack(email)
+    charset = unpack_charset(email)
+    try:
+        map[TPL_RAW_CONTENT] = raw.decode(charset)
+    except Exception as e:
+        stderr.write(e.message)
+        map[TPL_RAW_CONTENT] = raw
     map[TPL_CONTENT] = format(email, map[TPL_RAW_CONTENT])
     map[TPL_PREV_ID] = read_single_line(PREV_FILE, '')
     if map[TPL_PREV_ID]:
@@ -292,6 +306,7 @@ def do_template(map, in_filename, out_filename):
     text = ''
     with open(in_filename) as source:
         for line in source.readlines():
+            line = line.decode('utf-8')
             match = MARKER.search(line)
             if match:
                 name = match.group(1).lower()
@@ -299,7 +314,7 @@ def do_template(map, in_filename, out_filename):
                     line = map[name] + "\n"
             text = text + line
     with open(out_filename, 'w') as destn:
-        destn.write(text)
+        destn.write(text.encode('utf-8'))
 
 def shuffle_stored(path, count, down=True):
     if down:

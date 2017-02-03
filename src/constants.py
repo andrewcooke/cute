@@ -59,6 +59,7 @@ HDR_TO = 'To'
 HDR_ENV = 'Envelope-to'
 HDR_CC = 'Cc'
 HDR_MARKDOWN = 'X-Markdown'
+HDR_CTYPE = 'Content-Type'
 
 TPL_SUBJECT = 'title'
 TPL_RAW_CONTENT = 'raw-content'
@@ -97,6 +98,7 @@ EMAIL = compile("<?(\w+)@[\w\.]+>?")
 MARKER = compile(r'^\s*<!--\s+([\w\-]+)\s+-->\s*$')
 ADDRESS = compile(r'compute[+\-](\w+)@acooke.org')
 TIME = compile(r'^([^+\-]*)([+\-]\d\d\d\d)?(.*)$')
+CTYPE = compile(r'charset=(\S+)')
 MAX_DESCR = 400
 
 SELF_AD = '''
