@@ -99,6 +99,8 @@ MARKER = compile(r'^\s*<!--\s+([\w\-]+)\s+-->\s*$')
 ADDRESS = compile(r'compute[+\-](\w+)@acooke.org')
 TIME = compile(r'^([^+\-]*)([+\-]\d\d\d\d)?(.*)$')
 CTYPE = compile(r'charset=(\S+)')
+TAGS = compile(r'\s*\[[^\]]+\](.*)')
+NOT_ALPHAS = compile(r'[^a-z0-9A-Z]')
 MAX_DESCR = 400
 
 SELF_AD = '''

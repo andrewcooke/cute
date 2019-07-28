@@ -284,8 +284,10 @@ def generate_new_id(map):
     if subject:
         if subject.startswith(OLD_TAG):
             subject = subject[len(OLD_TAG):]
-        not_alphas = compile(r'[^a-z0-9A-Z]')
-        subject = not_alphas.sub('', subject)
+        match = TAGS.match(subject)
+        if match:
+            subject = match.group(1)
+        subject = NOT_ALPHAS.sub('', subject)
         if (len(subject) > 10):
             subject = subject[0:10]
         count = 0
