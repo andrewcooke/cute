@@ -207,7 +207,7 @@ def format_pre(text):
 def format_md(text):
     p = Popen([PANDOC, '--from=markdown', '--to=html', '--mathjax'], 
               stdin=PIPE, stdout=PIPE)
-    return p.communicate(text)[0]
+    return p.communicate(text)[0].decode('utf-8')
 
 def format(email, text):
     if HDR_MARKDOWN in email:
@@ -305,7 +305,7 @@ def skip(map):
     return False
 
 def do_template(map, in_filename, out_filename):
-    text = ''
+    text = u''
     with open(in_filename) as source:
         for line in source.readlines():
             line = line.decode('utf-8')
@@ -313,7 +313,7 @@ def do_template(map, in_filename, out_filename):
             if match:
                 name = match.group(1).lower()
                 if name in map:
-                    line = map[name] + "\n"
+                    line = map[name] + u"\n"
             text = text + line
     with open(out_filename, 'w') as destn:
         destn.write(text.encode('utf-8'))

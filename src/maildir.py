@@ -3,17 +3,17 @@
 from __future__ import with_statement
 
 from email import message_from_file
-from sys import stderr
 from os import listdir
-from os.path import isfile, getctime
-from re import compile
+from os.path import isfile
+from sys import stderr
 
-from cute import add_new_entry, add_reply, Multipart, BadSubject, get_time
 from constants import *
+from cute import add_new_entry, add_reply, Multipart, BadSubject, get_time
 
 
 def compare_age((typea, timea, patha), (typeb, timeb, pathb)):
     return cmp(timea, timeb)
+
 
 def collect_files(dir, type_, acc):
     for file in listdir(dir):
@@ -21,6 +21,7 @@ def collect_files(dir, type_, acc):
         if isfile(path) and not path.endswith('~'):
             time = get_time(path)
             acc.append((type_, time, path))
+
 
 def main():
     files = []
@@ -49,5 +50,14 @@ def main():
 #            except Exception, e:
 #                stderr.write(e.message)
 
+
+def test():
+    for path in ['/home/andrew/foo']:
+        with open(path) as source:
+            email = message_from_file(source)
+            add_new_entry(email)
+
+
 if __name__ == '__main__':
     main()
+    # test()
