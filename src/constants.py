@@ -4,8 +4,8 @@ from re import compile
 
 CUTE_DIR = "/home/andrew/project/cute"
 BLOG_DIR = "/home/andrew/project/www/cute"
-BASE_URL = "http://www.acooke.org/cute/"
-SHORT_URL = "http://acooke.org/cute/"
+BASE_URL = "https://www.acooke.org/cute/"
+SHORT_URL = "https://acooke.org/cute/"
 ABS_PATH = "/cute/"
 N_RECENT = 10
 N_REPLIES = 20
