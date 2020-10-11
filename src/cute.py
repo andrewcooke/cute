@@ -1,24 +1,28 @@
-
-from __future__ import with_statement
+from datetime import datetime
+from email import message_from_binary_file
+from logging import getLogger
 from os import mkdir, listdir
 from os.path import exists, join as pjoin
-from re import compile, sub
-from sys import stderr
-from string import join as sjoin
-from StringIO import StringIO
+from re import sub
 from subprocess import Popen, PIPE
-from PyRSS2Gen import RSSItem, Guid, RSS2
+from sys import stderr
 from time import strptime
-from datetime import datetime
-from email import message_from_file
+
+from PyRSS2Gen import RSSItem, Guid, RSS2
 
 from constants import *
 
+log = getLogger(__name__)
+
 
 def get_time(path):
-    with open(path) as source:
-        email = message_from_file(source)
-        return time_from_date(email[HDR_DATE])
+    with open(path, 'rb') as source:
+        email = message_from_binary_file(source)
+        if email[HDR_DATE]:
+            return time_from_date(email[HDR_DATE])
+        else:
+            raise BadTime()
+
 
 def _time_from_date(date):
     match = TIME.match(date)
@@ -34,17 +38,20 @@ def _time_from_date(date):
     except:
         return strptime(match.group(1).strip(), '%a, %d %b %Y %H:%M:%S')
 
+
 def time_from_date(date):
     try:
         from dateutil.parser import parse
         return parse(date).timetuple()
-    except:
-        stderr.write('dateutil failed for : %s' % date)
+    except Exception as e:
+        log.warning(f'dateutil failed for {date}: {e}')
         return _time_from_date(date)
+
 
 def create_blog_dir():
     if not exists(BLOG_DIR):
         mkdir(BLOG_DIR)
+
 
 def read_single_line(path, default=None):
     try:
@@ -54,22 +61,24 @@ def read_single_line(path, default=None):
         if default is not None:
             return default
         else:
-            raise sys.exc_info()
+            raise
+
 
 def read_file(path, default=None):
     try:
         with open(path) as source:
-            return sjoin(map(lambda s: s.decode('utf-8'), source.readlines()),
-                         '')
+            return source.read()
     except:
         if default is not None:
             return default
         else:
-            raise sys.exc_info()
+            raise
+
 
 def write_single_line(text, path):
     with open(path, 'w') as destn:
         destn.write(text)
+
 
 def write_rss(map):
     with open(RSS_FILE + str(0), 'w') as destn:
@@ -83,7 +92,8 @@ def write_rss(map):
         content = map[TPL_RAW_CONTENT]
         if len(content) > MAX_DESCR:
             content = content[0:MAX_DESCR] + '...'
-        destn.write(content.encode('utf-8'))
+        destn.write(content)
+
 
 def write_tweet(map):
     with open(TWEET_FILE, 'w') as destn:
@@ -93,6 +103,7 @@ def write_tweet(map):
             msg = msg[0:msg.rindex(' ')]
         destn.write(msg)
 
+
 def read_rss():
     rss = []
     count = 0
@@ -101,7 +112,7 @@ def read_rss():
             title = source.readline()
             url = source.readline()
             date = eval(source.readline())
-            description = sjoin(source.readlines())
+            description = ''.join(source.readlines())
             rss.append(RSSItem(
                 title=title,
                 link=BASE_URL + url,
@@ -111,17 +122,20 @@ def read_rss():
         count = count + 1
     return rss
 
+
 def read_all(path, join='', max_count=-1):
     text = []
     count = 0
     while exists(path + str(count)) and count != max_count:
         with open(path + str(count)) as source:
-            text.extend(map(lambda s: s.decode('utf-8'), source.readlines()))
+            text.extend(source.read())
         count = count + 1
-    return sjoin(text, join)
+    return join.join(text)
+
 
 def is_indent(line):
     return not line or line[0] == ' '
+
 
 def by_indent(lines):
     block = []
@@ -137,22 +151,9 @@ def by_indent(lines):
             old_indent = new_indent
     return blocks
 
-def by_blank_lines(lines):
-    blocks = []
-    prev_line_blank = True
-    for line in lines:
-        if len(line.strip()) == 0:
-            prev_line_blank = True
-        else:
-            if prev_line_blank:
-                block = []
-                blocks.append(block)
-            block.append(line)
-            prev_line_blank = False
-    return blocks
 
 def join_indents(old_blocks):
-    new_blocks=[]
+    new_blocks = []
     for block in old_blocks:
         if not new_blocks:
             new_blocks.append(block)
@@ -163,12 +164,14 @@ def join_indents(old_blocks):
                 new_blocks.append(block)
     return new_blocks
 
+
 def add_tag(lines):
     if is_indent(lines[0]):
         tag = "pre"
     else:
         tag = "p"
-    return "<%s>%s</%s>" % (tag, sjoin(lines, '\n'), tag)
+    return "<%s>%s</%s>" % (tag, '\n'.join(lines), tag)
+
 
 def unpack(message):
     payload = message.get_payload()
@@ -177,6 +180,7 @@ def unpack(message):
     else:
         return payload
 
+
 def unpack_charset(email):
     if email[HDR_CTYPE]:
         ctype = email[HDR_CTYPE]
@@ -184,10 +188,12 @@ def unpack_charset(email):
         if match: return match.group(1)
     return 'latin-1'
 
+
 def linkify(match):
     url = match.group(1)
     if url in URL_REWRITES: url = URL_REWRITES[url]
     return "<a href='%s'>%s</a>" % (url, url)
+
 
 def format_raw(text):
     if text:
@@ -201,13 +207,16 @@ def format_raw(text):
         text = ''
     return text
 
+
 def format_pre(text):
     return '<pre>' + format_raw(text) + '</pre>'
 
+
 def format_md(text):
-    p = Popen([PANDOC, '--from=markdown', '--to=html', '--mathjax'], 
+    p = Popen([PANDOC, '--from=markdown', '--to=html', '--mathjax'],
               stdin=PIPE, stdout=PIPE)
-    return p.communicate(text)[0].decode('utf-8')
+    return p.communicate(text.encode('utf-8'))[0].decode('utf-8')
+
 
 def format(email, text):
     if HDR_MARKDOWN in email:
@@ -215,18 +224,14 @@ def format(email, text):
     else:
         return format_pre(text)
 
+
 def build_map(email, exists=False):
     map = {}
     map[TPL_SUBJECT] = sub('[\n\r]', ' ', format_raw(email[HDR_SUBJECT]))
     map[TPL_FROM] = format_raw(email[HDR_FROM])
     map[TPL_DATE] = email[HDR_DATE]
     raw = unpack(email)
-    charset = unpack_charset(email)
-    try:
-        map[TPL_RAW_CONTENT] = raw.decode(charset)
-    except Exception as e:
-        stderr.write(e.message)
-        map[TPL_RAW_CONTENT] = raw
+    map[TPL_RAW_CONTENT] = raw
     map[TPL_CONTENT] = format(email, map[TPL_RAW_CONTENT])
     map[TPL_PREV_ID] = read_single_line(PREV_FILE, '')
     if map[TPL_PREV_ID]:
@@ -239,8 +244,9 @@ def build_map(email, exists=False):
     map[TPL_FILENAME] = pjoin(BLOG_DIR, map[TPL_ID] + HTML)
     map[TPL_REPLYTO] = "<a href='mailto:compute+%(id)s@acooke.org'>Comment on this post</a>" % map
     if map[TPL_SUBJECT] and map[TPL_SUBJECT].startswith(OLD_TAG):
-         map[TPL_SUBJECT] =  map[TPL_SUBJECT][len(OLD_TAG):]
+        map[TPL_SUBJECT] = map[TPL_SUBJECT][len(OLD_TAG):]
     return map
+
 
 def generate_url(map, exists):
     map[TPL_URL] = map[TPL_ID] + HTML
@@ -249,11 +255,13 @@ def generate_url(map, exists):
         map[TPL_ANCHORLINK] = "<a id='%s'></a>" % map[TPL_ANCHOR]
         map[TPL_URL] = map[TPL_URL] + '#' + map[TPL_ANCHOR]
 
+
 def generate_id(map, email, exists):
     if exists:
         map[TPL_ID] = generate_old_id(map, email)
     else:
         map[TPL_ID] = generate_new_id(map)
+
 
 def address_from(header):
     match = ADDRESS.search(header)
@@ -261,6 +269,7 @@ def address_from(header):
         return match.group(1)
     else:
         return None
+
 
 def generate_old_id(map, email):
     to = address_from(email[HDR_TO])
@@ -278,6 +287,7 @@ def generate_old_id(map, email):
             if to.lower() == file.lower():
                 return file
     raise BadSubject('no match for ' + to)
+
 
 def generate_new_id(map):
     subject = map[TPL_SUBJECT]
@@ -297,40 +307,44 @@ def generate_new_id(map):
     else:
         return ''
 
+
 def skip(map):
     subject = map[TPL_SUBJECT]
-    if not subject: return True
+    if not subject:
+        return True
     for regexp in BAD_SUBJECTS:
-        if regexp.search(subject): return True
+        if regexp.search(subject):
+            return True
     return False
 
+
 def do_template(map, in_filename, out_filename):
-    text = u''
+    text = ''
     with open(in_filename) as source:
         for line in source.readlines():
-            line = line.decode('utf-8')
             match = MARKER.search(line)
             if match:
                 name = match.group(1).lower()
                 if name in map:
-                    line = map[name] + u"\n"
+                    line = map[name] + "\n"
             text = text + line
     with open(out_filename, 'w') as destn:
-        destn.write(text.encode('utf-8'))
+        destn.write(text)
+
 
 def shuffle_stored(path, count, down=True):
     if down:
         for n in range(count, 0, -1):
-            source = path + str(n-1)
+            source = path + str(n - 1)
             destn = path + str(n)
             copy(source, destn, force=True)
     else:
         for n in range(count):
-            source = path + str(n+1)
+            source = path + str(n + 1)
             destn = path + str(n)
             copy(source, destn, force=True)
-        
-        
+
+
 def copy(spath, dpath, force=False):
     if exists(spath):
         if force or not exists(dpath):
@@ -339,16 +353,18 @@ def copy(spath, dpath, force=False):
             with open(dpath, 'w') as destn:
                 destn.writelines(contents)
 
+
 def update_sidebar(map):
     shuffle_stored(ALL_FILE, N_ALL)
-    write_single_line("<a href='%s%s' target='_top'>%s</a>" % 
-                      (ABS_PATH, map[TPL_URL], map[TPL_SUBJECT]), 
+    write_single_line("<a href='%s%s' target='_top'>%s</a>" %
+                      (ABS_PATH, map[TPL_URL], map[TPL_SUBJECT]),
                       ALL_FILE + str(0))
     do_template({TPL_ALL: read_all(ALL_FILE, join=';\n')},
                 SIDEBAR, SIDEBAR_FILE)
-    do_template({TPL_ALL: read_all(ALL_FILE, join='\n</li><li>\n', 
+    do_template({TPL_ALL: read_all(ALL_FILE, join='\n</li><li>\n',
                                    max_count=3)},
                 MINIBAR, MINIBAR_FILE)
+
 
 def update_rss(items):
     rss = RSS2(
@@ -360,13 +376,14 @@ def update_rss(items):
     with open(FEED_FILE, 'w') as destn:
         rss.write_xml(destn)
 
+
 def add_new_entry(email):
     create_blog_dir()
     map = build_map(email)
     if not skip(map):
         # generate post (ie the permalink page)
         do_template(map, DATA, map[TPL_FILENAME])
-        stderr.write('writing %s\n' %  map[TPL_FILENAME])
+        stderr.write('writing %s\n' % map[TPL_FILENAME])
         if map[TPL_PREV_ID]:
             # update the "next" link in the previous entry
             next = "<a href='%s'>%s</a>" % (map[TPL_ID] + HTML, NEXT)
@@ -378,9 +395,9 @@ def add_new_entry(email):
         do_template(map, INDEX, INDEX_FILE)
         # update contents
         copy(CONTENTS, CONTENTS_FILE)
-        do_template({TPL_CONTENT: 
-                     "<!-- CONTENT -->\n<li><a href='%s'>%s</a></li>" %
-                     (map[TPL_URL], map[TPL_SUBJECT]),
+        do_template({TPL_CONTENT:
+                         "<!-- CONTENT -->\n<li><a href='%s'>%s</a></li>" %
+                         (map[TPL_URL], map[TPL_SUBJECT]),
                      TPL_SELF_AD: SELF_AD},
                     CONTENTS_FILE, CONTENTS_FILE)
         # add previous entries, without reprocessing
@@ -395,16 +412,16 @@ def add_new_entry(email):
         do_template(map, BODY, RECENT_FILE + str(0))
         # same for threads links
         shuffle_stored(THREADS_FILE, N_THREADS)
-        write_single_line("<p><a href='%s'>%s</a></p>\n" % 
-                          (map[TPL_URL], map[TPL_SUBJECT]), 
+        write_single_line("<p><a href='%s'>%s</a></p>\n" %
+                          (map[TPL_URL], map[TPL_SUBJECT]),
                           THREADS_FILE + str(0))
         # same for rss records
         shuffle_stored(RSS_FILE, N_RSS)
         write_rss(map)
         try:
             update_rss(read_rss())
-        except UnicodeDecodeError, e:
-            stderr.write(e.message)
+        except UnicodeDecodeError as e:
+            log.warning(e)
             # delete the last rss entry
             shuffle_stored(RSS_FILE, N_RSS, down=False)
         # and tweet
@@ -414,7 +431,8 @@ def add_new_entry(email):
         # copy files on first article
         copy(CSS, CSS_FILE)
         copy(IMAGE, IMAGE_FILE)
-        
+
+
 def add_reply(email):
     map = build_map(email, exists=True)
     if not skip(map):
@@ -427,13 +445,19 @@ def add_reply(email):
         post = join(BLOG_DIR, map[TPL_ID] + HTML)
         do_template(reply, post, post)
         shuffle_stored(REPLIES_FILE, N_REPLIES)
-        write_single_line("<p><a href='%s'>%s</a></p>\n" % 
-                          (map[TPL_URL], map[TPL_SUBJECT]), 
+        write_single_line("<p><a href='%s'>%s</a></p>\n" %
+                          (map[TPL_URL], map[TPL_SUBJECT]),
                           REPLIES_FILE + str(0))
         update_sidebar(map)
+
 
 class Multipart(IOError):
     pass
 
+
 class BadSubject(IOError):
+    pass
+
+
+class BadTime(IOError):
     pass

@@ -13,9 +13,11 @@ def main():
     do_call('/home/andrew/bin/updateCute')
     do_call('/home/andrew/bin/tweetCute')
 
+
 def do_call(*args):
-    print args
+    print(args)
     call(args)
+
 
 if __name__ == '__main__':
     main()

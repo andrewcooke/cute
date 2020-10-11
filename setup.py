@@ -11,6 +11,7 @@ setuptools.setup(name='cute',
                  include_package_data=True,
                  install_requires=[
                      'PyRSS2Gen',
+                     'python-dateutil',
                      ],
                  classifiers=(
                      "Programming Language :: Python :: 2.7",

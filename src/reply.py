@@ -12,5 +12,6 @@ def main():
     add_reply(email)
     call('/home/andrew/bin/updateCute')
 
+
 if __name__ == '__main__':
     main()

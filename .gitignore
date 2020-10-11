@@ -2,3 +2,5 @@
 env
 *~
 cute.egg-info
+.idea
+*.iml
