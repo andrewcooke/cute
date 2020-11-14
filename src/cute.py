@@ -128,7 +128,7 @@ def read_all(path, join='', max_count=-1):
     count = 0
     while exists(path + str(count)) and count != max_count:
         with open(path + str(count)) as source:
-            text.extend(source.read())
+            text.append(source.read())
         count = count + 1
     return join.join(text)
 
@@ -235,13 +235,13 @@ def build_map(email, exists=False):
     map[TPL_CONTENT] = format(email, map[TPL_RAW_CONTENT])
     map[TPL_PREV_ID] = read_single_line(PREV_FILE, '')
     if map[TPL_PREV_ID]:
-        map[TPL_PREV_URL] = map[TPL_PREV_ID] + HTML
+        map[TPL_PREV_URL] = map[TPL_PREV_ID] + SHTML
         map[TPL_PREVIOUS] = '<a href="%s">%s</a>' % (map[TPL_PREV_URL], PREVIOUS)
     map[TPL_SELF_AD] = SELF_AD
     generate_id(map, email, exists)
     generate_url(map, exists)
     map[TPL_PERMALINK] = "<a href='%s'>%s</a>" % (map[TPL_URL], PERMALINK)
-    map[TPL_FILENAME] = pjoin(BLOG_DIR, map[TPL_ID] + HTML)
+    map[TPL_FILENAME] = pjoin(BLOG_DIR, map[TPL_ID] + SHTML)
     map[TPL_REPLYTO] = "<a href='mailto:compute+%(id)s@acooke.org'>Comment on this post</a>" % map
     if map[TPL_SUBJECT] and map[TPL_SUBJECT].startswith(OLD_TAG):
         map[TPL_SUBJECT] = map[TPL_SUBJECT][len(OLD_TAG):]
@@ -249,7 +249,7 @@ def build_map(email, exists=False):
 
 
 def generate_url(map, exists):
-    map[TPL_URL] = map[TPL_ID] + HTML
+    map[TPL_URL] = map[TPL_ID] + SHTML
     if exists:
         map[TPL_ANCHOR] = sub('\W', '', map[TPL_DATE])
         map[TPL_ANCHORLINK] = "<a id='%s'></a>" % map[TPL_ANCHOR]
@@ -278,12 +278,12 @@ def generate_old_id(map, email):
     if not to and email[HDR_TO]: to = address_from(email[HDR_TO])
     if not to:
         raise IOError('no suitable destination address')
-    destn = join(BLOG_DIR, to + HTML)
+    destn = join(BLOG_DIR, to + SHTML)
     if exists(destn):
         return to
     for file in listdir(BLOG_DIR):
-        if file.endswith(HTML):
-            file = file[0:-5]
+        if file.endswith(SHTML):
+            file = file[0:-+len(SHTML)]
             if to.lower() == file.lower():
                 return file
     raise BadSubject('no match for ' + to)
@@ -301,7 +301,8 @@ def generate_new_id(map):
         if (len(subject) > 10):
             subject = subject[0:10]
         count = 0
-        while exists(pjoin(BLOG_DIR, subject + str(count) + HTML)):
+        existing = set(file.lower() for file in listdir(BLOG_DIR))
+        while (subject + str(count) + SHTML).lower() in existing:
             count = count + 1
         return subject + str(count)
     else:
@@ -386,8 +387,8 @@ def add_new_entry(email):
         stderr.write('writing %s\n' % map[TPL_FILENAME])
         if map[TPL_PREV_ID]:
             # update the "next" link in the previous entry
-            next = "<a href='%s'>%s</a>" % (map[TPL_ID] + HTML, NEXT)
-            prev = pjoin(BLOG_DIR, map[TPL_PREV_ID] + HTML)
+            next = "<a href='%s'>%s</a>" % (map[TPL_ID] + SHTML, NEXT)
+            prev = pjoin(BLOG_DIR, map[TPL_PREV_ID] + SHTML)
             do_template({TPL_NEXT: next}, prev, prev)
         # save current file name so we can update next there next time
         write_single_line(map[TPL_ID], PREV_FILE)
@@ -440,9 +441,9 @@ def add_reply(email):
         reply = {TPL_REPLY: read_file(REPLY_FILE)}
         # restrict front page reply to the main article
         line = read_single_line(THREADS_FILE + str(0), '')
-        if line.find("'" + map[TPL_ID] + HTML + "'") > -1:
+        if line.find("'" + map[TPL_ID] + SHTML + "'") > -1:
             do_template(reply, INDEX_FILE, INDEX_FILE)
-        post = join(BLOG_DIR, map[TPL_ID] + HTML)
+        post = join(BLOG_DIR, map[TPL_ID] + SHTML)
         do_template(reply, post, post)
         shuffle_stored(REPLIES_FILE, N_REPLIES)
         write_single_line("<p><a href='%s'>%s</a></p>\n" %

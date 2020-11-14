@@ -86,6 +86,7 @@ TPL_SELF_AD = 'self-advert'
 
 OLD_TAG = '[Cute]'
 HTML = '.html'
+SHTML = '.shtml'
 PREVIOUS = 'Previous'
 NEXT = 'Next'
 PERMALINK = 'Permalink'
@@ -105,36 +106,10 @@ MAX_DESCR = 400
 
 SELF_AD = '''
 <h3>Personal Projects</h3>
-<p><a href="/portfolio/lepl">Lepl</a> parser for Python.</p>
-<p><a href="http://colorlessgreen.net">Colorless Green</a>.</p>
-<p><a href="/photography">Photography</a> around Santiago.</p>
-<p><a href="/portfolio/practicl">SVG</a> experiment.</p>
-<h3>Professional Portfolio</h3>
-<p><a href="/portfolio/seismic-cal">Calibration</a> of seismometers.</p>
-<p><a href="/portfolio/data-access">Data</a> access via web services.</p>
-<p><a href="/portfolio/cache">Cache</a> rewrite.</p>
-<p>Extending <a href="/portfolio/security">OpenSSH</a>.</p>
-<p><a href="https://bitbucket.org/isti/c-orm/src">C-ORM</a>:
-<a href="https://bitbucket.org/isti/c-orm/wiki/Home">docs</a>, 
-<a href="http://isti.bitbucket.org/clib/index.html">API</a>.</p>
+<p><a href="https://github.com/andrewcooke/choochoo">Choochoo</a> Training Diary</p>
 '''
 
 URL_REWRITES = dict([
-('http://www.acooke.org/andrew/compute.html', 'http://www.acooke.org/cute'),
 ('http://www.acooke.org/andrew', 'http://www.acooke.org'),
-('http://www.acooke.org/andrew/papers/index.html#esoa', 'http://www.acooke.org/esoa.pdf'),
-('http://www.acooke.org/andrew/papers/index.html#impl', 'http://www.acooke.org/esoa.pdf'),
-('http://www.acooke.org/andrew/papers/tiny.pdf', 'http://www.acooke.org/tiny.pdf'),
-('http://www.acooke.org/andrew/papers/index.html#schema', 'http://www.acooke.org/schema.pdf'),
-('http://www.acooke.org/andrew/papers/index.html', 'http://www.acooke.org'),
-('http://www.acooke.org/andrew/papers/booklet.pdf', 'http://www.acooke.org/booklet.pdf'),
-('http://www.acooke.org/andrew/papers/lazy.pdf', 'http://www.acooke.org/lazy.pdf'),
-('http://www.acooke.org/andrew/papers/vocab.pdf', 'http://www.acooke.org/vocab.pdf'),
-('http://www.acooke.org/andrew/papers/impl.pdf', 'http://www.acooke.org/impl.pdf'),
-('http://www.acooke.org/andrew/papers/esoa.pdf', 'http://www.acooke.org/esoa.pdf'),
-('http://www.acooke.org/andrew/writing/compgeneral.html#agile', 'http://www.acooke.org/agile-review.html'),
-('http://www.acooke.org/andrew/writing/minimal/static.html', 'http://www.acooke.org/minimal/background.html'),
-('http://www.acooke.org/andrew/writing/minimal/dynamic.html', 'http://www.acooke.org/minimal'),
-('http://www.acooke.org/andrew/index.html', 'http://www.acooke.org'),
-('http://www.acooke.org/andrew/writing/arms.html', 'http://www.acooke.org/arms.html')
+('http://www.acooke.org/andrew/index.html', 'http://www.acooke.org')
 ])
